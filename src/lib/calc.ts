@@ -26,6 +26,13 @@ export function grandTotal(p: Proposal): number {
   return round2(itemsTotal(p.items) - discountAmount(itemsTotal(p.items), p.options.discount))
 }
 
+/** Дополнительная скидка при оплате наличными или картой в магазине, % от суммы без скидок. */
+export const CASH_PAYMENT_DISCOUNT = 5
+
+export function cashPaymentTotal(itemsTotalValue: number): number {
+  return round2((itemsTotalValue * (100 - CASH_PAYMENT_DISCOUNT)) / 100)
+}
+
 export function round2(value: number): number {
   return Math.round((Number(value) || 0) * 100) / 100
 }

@@ -1,7 +1,7 @@
 import { FileText } from 'lucide-react'
 import logoUrl from '../assets/logo.png'
 import type { Company, Proposal } from '../types'
-import { discountAmount, itemSubtotal, itemsTotal } from '../lib/calc'
+import { CASH_PAYMENT_DISCOUNT, cashPaymentTotal, discountAmount, itemSubtotal, itemsTotal } from '../lib/calc'
 import {
   RUB,
   addDaysISO,
@@ -26,6 +26,7 @@ export function KpPreview({ proposal, company }: Props) {
   const sum = itemsTotal(items)
   const discount = discountAmount(sum, options.discount)
   const grand = Math.round((sum - discount) * 100) / 100
+  const cash = cashPaymentTotal(sum)
   const validUntil = addDaysISO(proposal.date, options.validDays)
 
   return (
@@ -212,6 +213,19 @@ export function KpPreview({ proposal, company }: Props) {
                     <span className="text-[10px] font-bold uppercase">Итого к оплате</span>
                     <span className="num text-[15px] font-bold text-[#d81f27]">
                       {moneyExact(grand)}
+                    </span>
+                  </div>
+                  <div className="mt-1.5 flex items-start justify-between gap-3 rounded-lg border border-[#f0c9c9] bg-[#fdf4f4] px-2.5 py-1.5">
+                    <div className="min-w-0">
+                      <div className="text-[9px] leading-tight font-semibold text-[#141416]">
+                        При оплате наличными или картой в магазине
+                      </div>
+                      <div className="text-[8px] leading-tight text-[#8a5a5a]">
+                        ещё −{CASH_PAYMENT_DISCOUNT}% от суммы без скидок
+                      </div>
+                    </div>
+                    <span className="num text-[13px] font-bold whitespace-nowrap text-[#d81f27]">
+                      {moneyExact(cash)}
                     </span>
                   </div>
                 </div>

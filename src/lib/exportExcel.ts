@@ -1,7 +1,7 @@
 import ExcelJS from 'exceljs'
 import logoInline from '../assets/logo.png?inline'
 import type { Company, Proposal } from '../types'
-import { discountAmount, itemSubtotal, itemsTotal } from './calc'
+import { CASH_PAYMENT_DISCOUNT, cashPaymentTotal, discountAmount, itemSubtotal, itemsTotal } from './calc'
 import { addDaysISO, daysWord, formatDate, formatDateShort, num } from './format'
 
 const BLACK = 'FF141416'
@@ -9,6 +9,9 @@ const RED = 'FFD81F27'
 const GREY = 'FF5B5B63'
 const HEAD_FILL = 'FFF1F1F2'
 const SOFT_FILL = 'FFFAFAFB'
+const CASH_FILL = 'FFFDF4F4'
+const CASH_BORDER = 'FFF0C9C9'
+const CASH_LABEL = 'FF8A5A5A'
 
 const MONEY_FMT = '# ##0.00" ₽"'
 const QTY_FMT = '# ##0.##'
@@ -40,6 +43,7 @@ export async function exportExcel(proposal: Proposal, company: Company): Promise
   const sum = itemsTotal(items)
   const discount = discountAmount(sum, options.discount)
   const grand = Math.round((sum - discount) * 100) / 100
+  const cash = cashPaymentTotal(sum)
   const validUntil = addDaysISO(proposal.date, options.validDays)
 
   sheet.mergeCells('A1:H1')
@@ -260,6 +264,37 @@ export async function exportExcel(proposal: Proposal, company: Company): Promise
     cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: SOFT_FILL } }
   })
   grandRow.height = 32
+  cursor += 1
+
+  const cashRow = sheet.getRow(cursor)
+  sheet.mergeCells(`A${cursor}:G${cursor}`)
+  cashRow.getCell(1).value = {
+    richText: [
+      { text: 'При оплате наличными или картой в магазине\n', font: { size: 11, bold: true } },
+      {
+        text: `ещё −${CASH_PAYMENT_DISCOUNT}% от суммы без скидок`,
+        font: { size: 9, color: { argb: CASH_LABEL } },
+      },
+    ],
+  }
+  cashRow.getCell(1).alignment = { horizontal: 'right', vertical: 'middle', wrapText: true }
+  cashRow.getCell(8).value = {
+    formula: `ROUND(H${lastItemRow + 1}*(1-${CASH_PAYMENT_DISCOUNT}/100),2)`,
+    result: cash,
+  }
+  cashRow.getCell(8).numFmt = MONEY_FMT
+  cashRow.getCell(8).font = { size: 13, bold: true, color: { argb: RED } }
+  cashRow.getCell(8).alignment = { vertical: 'middle', horizontal: 'right' }
+  cashRow.eachCell((cell) => {
+    cell.border = {
+      top: { style: 'thin', color: { argb: CASH_BORDER } },
+      bottom: { style: 'medium', color: { argb: CASH_BORDER } },
+      left: { style: 'thin', color: { argb: CASH_BORDER } },
+      right: { style: 'thin', color: { argb: CASH_BORDER } },
+    }
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: CASH_FILL } }
+  })
+  cashRow.height = 34
   cursor += 2
 
   const notes: string[] = [

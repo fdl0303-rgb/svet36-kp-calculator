@@ -2,7 +2,7 @@ import pdfMake from 'pdfmake/build/pdfmake'
 import vfs from 'pdfmake/build/vfs_fonts'
 import logoInline from '../assets/logo.png?inline'
 import type { Company, Proposal } from '../types'
-import { discountAmount, itemSubtotal, itemsTotal } from './calc'
+import { CASH_PAYMENT_DISCOUNT, cashPaymentTotal, discountAmount, itemSubtotal, itemsTotal } from './calc'
 import { RUB, addDaysISO, daysWord, formatDate, formatDateShort, num } from './format'
 
 type PdfMakeStatic = {
@@ -30,6 +30,7 @@ export async function exportPdf(proposal: Proposal, company: Company): Promise<v
   const sum = itemsTotal(items)
   const discount = discountAmount(sum, options.discount)
   const grand = Math.round((sum - discount) * 100) / 100
+  const cash = cashPaymentTotal(sum)
   const validUntil = addDaysISO(proposal.date, options.validDays)
 
   const header = (): Content => ({
@@ -263,6 +264,41 @@ export async function exportPdf(proposal: Proposal, company: Company): Promise<v
                   { text: 'Итого к оплате', bold: true, fontSize: 10, characterSpacing: 0.4 },
                   { text: money(grand), bold: true, fontSize: 14, color: RED, alignment: 'right' },
                 ],
+                margin: [0, 6, 0, 0],
+              },
+              {
+                table: {
+                  widths: ['*', 96],
+                  body: [
+                    [
+                      {
+                        text: [
+                          { text: 'При оплате наличными или картой в магазине\n', bold: true },
+                          { text: `ещё −${CASH_PAYMENT_DISCOUNT}% от суммы без скидок`, color: '#8a5a5a' },
+                        ],
+                        fontSize: 8,
+                        fillColor: '#fdf4f4',
+                        margin: [6, 5, 0, 5],
+                        lineHeight: 1.25,
+                      },
+                      {
+                        text: money(cash),
+                        bold: true,
+                        fontSize: 12,
+                        color: RED,
+                        alignment: 'right',
+                        fillColor: '#fdf4f4',
+                        margin: [0, 5, 6, 5],
+                      },
+                    ],
+                  ],
+                },
+                layout: {
+                  hLineWidth: () => 0.5,
+                  vLineWidth: () => 0.5,
+                  hLineColor: () => '#f0c9c9',
+                  vLineColor: () => '#f0c9c9',
+                },
                 margin: [0, 6, 0, 0],
               },
             ],
