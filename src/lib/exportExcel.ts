@@ -27,7 +27,7 @@ export async function exportExcel(proposal: Proposal, company: Company): Promise
 
   sheet.columns = [
     { width: 5 },
-    { width: 13 },
+    { width: 23 },
     { width: 46 },
     { width: 15 },
     { width: 7 },
@@ -154,7 +154,7 @@ export async function exportExcel(proposal: Proposal, company: Company): Promise
   const firstItemRow = headerRowIndex + 1
   items.forEach((item, index) => {
     const row = sheet.getRow(firstItemRow + index)
-    row.height = 76
+    row.height = item.photo ? 126 : 34
     row.values = [
       index + 1,
       '',
@@ -196,8 +196,8 @@ export async function exportExcel(proposal: Proposal, company: Company): Promise
         extension: imageExtension(item.photo),
       })
       sheet.addImage(imageId, {
-        tl: { col: 1.14, row: firstItemRow + index - 0.92 },
-        ext: { width: 80, height: 80 },
+        tl: { col: 1.26, row: firstItemRow + index - 0.95 },
+        ext: { width: 160, height: 160 },
         editAs: 'oneCell',
       })
     }

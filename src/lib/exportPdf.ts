@@ -199,7 +199,7 @@ export async function exportPdf(proposal: Proposal, company: Company): Promise<v
       {
         table: {
           headerRows: 1,
-          widths: [22, 46, '*', 32, 38, 62, 66],
+          widths: [22, 88, '*', 32, 38, 62, 66],
           body: [
             [
               { text: '№', alignment: 'center' },
@@ -213,7 +213,7 @@ export async function exportPdf(proposal: Proposal, company: Company): Promise<v
             ...items.map((item, index) => [
               { text: String(index + 1), alignment: 'center', color: LIGHT },
               item.photo
-                ? { image: item.photo, width: 38, height: 38, margin: [0, 2, 0, 2] }
+                ? { image: item.photo, width: 76, height: 76, margin: [0, 2, 0, 2] }
                 : {
                     text: String(index + 1),
                     alignment: 'center',

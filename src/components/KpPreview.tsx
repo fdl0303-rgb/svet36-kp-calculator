@@ -137,7 +137,7 @@ export function KpPreview({ proposal, company }: Props) {
                     <th className="w-8 border border-[#e2e2e6] px-1.5 py-1.5 text-left font-semibold">
                       №
                     </th>
-                    <th className="w-14 border border-[#e2e2e6] px-1.5 py-1.5 text-center font-semibold">
+                    <th className="w-[136px] border border-[#e2e2e6] px-1.5 py-1.5 text-center font-semibold">
                       Фото
                     </th>
                     <th className="border border-[#e2e2e6] px-2 py-1.5 text-left font-semibold">
@@ -168,10 +168,10 @@ export function KpPreview({ proposal, company }: Props) {
                           <img
                             src={item.photo}
                             alt=""
-                            className="mx-auto size-11 rounded object-cover"
+                            className="mx-auto size-[117px] rounded object-cover"
                           />
                         ) : (
-                          <div className="num mx-auto grid size-11 place-items-center rounded bg-[#f4f4f5] text-[10px] text-[#b0b0b8]">
+                          <div className="num mx-auto grid size-[117px] place-items-center rounded bg-[#f4f4f5] text-[10px] text-[#b0b0b8]">
                             {index + 1}
                           </div>
                         )}
