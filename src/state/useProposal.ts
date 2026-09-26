@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Client, Company, Item, Options, Proposal } from '../types'
-import { createItem, grandTotal, itemsTotal, sumQty } from '../lib/calc'
+import { createItem, cryptoId, discountAmount, grandTotal, itemsTotal, sumQty } from '../lib/calc'
 import { DEFAULT_COMPANY } from '../lib/company'
 import { todayISO } from '../lib/format'
 import { buildProposalNumber } from '../lib/number'
@@ -36,6 +36,17 @@ function createDraft(): Proposal {
   }
 }
 
+function withItems(p: Proposal): Proposal {
+  return {
+    ...p,
+    client: { ...DEFAULT_CLIENT, ...p.client },
+    options: { ...DEFAULT_OPTIONS, ...p.options },
+    items: p.items.length
+      ? p.items.map((item) => ({ ...createItem(), ...item, id: item.id || cryptoId() }))
+      : [createItem()],
+  }
+}
+
 export interface ProposalState {
   proposal: Proposal
   company: Company
@@ -60,15 +71,15 @@ export interface ProposalState {
 export function useProposal(): ProposalState {
   const [proposal, setProposal] = useState<Proposal>(() => {
     const linked = readHashProposal()
-    if (linked) return { ...linked, items: linked.items.length ? linked.items : [createItem()] }
+    if (linked) return withItems(linked)
     const draft = loadJSON<Proposal | null>(DRAFT_KEY, null)
     if (draft?.items?.length) {
       return {
-        ...createDraft(),
-        ...draft,
-        options: { ...DEFAULT_OPTIONS, ...draft.options },
+        number: draft.number || buildProposalNumber(todayISO()),
+        date: draft.date || todayISO(),
         client: { ...DEFAULT_CLIENT, ...draft.client },
         items: draft.items.map((item) => ({ ...createItem(), ...item })),
+        options: { ...DEFAULT_OPTIONS, ...draft.options },
       }
     }
     return createDraft()
@@ -98,7 +109,7 @@ export function useProposal(): ProposalState {
       count: proposal.items.length,
       qty: sumQty(proposal.items),
       sum,
-      discount: Math.round(sum * d),
+      discount: discountAmount(sum, d),
       grand: grandTotal(proposal),
     }
   }, [proposal])
@@ -155,7 +166,7 @@ export function useProposal(): ProposalState {
       const index = prev.items.findIndex((item) => item.id === id)
       if (index < 0) return prev
       const source = prev.items[index]
-      const copy = { ...createItem(), ...source, id: createItem().id }
+      const copy = { ...source, id: cryptoId() }
       const items = [...prev.items]
       items.splice(index + 1, 0, copy)
       return { ...prev, items }
@@ -182,7 +193,7 @@ export function useProposal(): ProposalState {
 
   const loadFromLink = useCallback((p: Proposal) => {
     setFromLink(true)
-    setProposal({ ...p, items: p.items.length ? p.items : [createItem()] })
+    setProposal(withItems(p))
   }, [])
 
   return {

@@ -1,4 +1,5 @@
 import type { Item, Proposal } from '../types'
+import { cryptoId } from './calc'
 
 type ShareItem = [string, string, string, number, number, number | null, string]
 
@@ -83,6 +84,7 @@ export function decodeProposal(data: string): Proposal | null {
         discount: parsed.o?.[5] ?? 0,
       },
       items: parsed.i.map<Partial<Item>>((row) => ({
+        id: cryptoId(),
         name: row[0] ?? '',
         sku: row[1] ?? '',
         unit: row[2] || 'шт',
