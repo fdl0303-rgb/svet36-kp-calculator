@@ -2,7 +2,7 @@ import pdfMake from 'pdfmake/build/pdfmake'
 import vfs from 'pdfmake/build/vfs_fonts'
 import logoInline from '../assets/logo.png?inline'
 import type { Company, Proposal } from '../types'
-import { CASH_PAYMENT_DISCOUNT, cashPaymentTotal, discountAmount, itemSubtotal, itemsTotal } from './calc'
+import { cashPaymentTotal, discountAmount, itemSubtotal, itemsTotal, totalDiscountWithCash } from './calc'
 import { RUB, addDaysISO, daysWord, formatDate, formatDateShort, num } from './format'
 
 type PdfMakeStatic = {
@@ -30,7 +30,8 @@ export async function exportPdf(proposal: Proposal, company: Company): Promise<v
   const sum = itemsTotal(items)
   const discount = discountAmount(sum, options.discount)
   const grand = Math.round((sum - discount) * 100) / 100
-  const cash = cashPaymentTotal(sum)
+  const cash = cashPaymentTotal(sum, options.discount)
+  const cashRate = totalDiscountWithCash(options.discount)
   const validUntil = addDaysISO(proposal.date, options.validDays)
 
   const header = (): Content => ({
@@ -274,7 +275,7 @@ export async function exportPdf(proposal: Proposal, company: Company): Promise<v
                       {
                         text: [
                           { text: 'При оплате наличными или картой в магазине\n', bold: true },
-                          { text: `ещё −${CASH_PAYMENT_DISCOUNT}% от суммы без скидок`, color: '#8a5a5a' },
+                          { text: `скидка ${cashRate}% от суммы позиций`, color: '#8a5a5a' },
                         ],
                         fontSize: 8,
                         fillColor: '#fdf4f4',

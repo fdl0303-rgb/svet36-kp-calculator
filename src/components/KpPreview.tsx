@@ -1,7 +1,7 @@
 import { FileText } from 'lucide-react'
 import logoUrl from '../assets/logo.png'
 import type { Company, Proposal } from '../types'
-import { CASH_PAYMENT_DISCOUNT, cashPaymentTotal, discountAmount, itemSubtotal, itemsTotal } from '../lib/calc'
+import { cashPaymentTotal, discountAmount, itemSubtotal, itemsTotal, totalDiscountWithCash } from '../lib/calc'
 import {
   RUB,
   addDaysISO,
@@ -26,7 +26,8 @@ export function KpPreview({ proposal, company }: Props) {
   const sum = itemsTotal(items)
   const discount = discountAmount(sum, options.discount)
   const grand = Math.round((sum - discount) * 100) / 100
-  const cash = cashPaymentTotal(sum)
+  const cash = cashPaymentTotal(sum, options.discount)
+  const cashRate = totalDiscountWithCash(options.discount)
   const validUntil = addDaysISO(proposal.date, options.validDays)
 
   return (
@@ -221,7 +222,7 @@ export function KpPreview({ proposal, company }: Props) {
                         При оплате наличными или картой в магазине
                       </div>
                       <div className="text-[8px] leading-tight text-[#8a5a5a]">
-                        ещё −{CASH_PAYMENT_DISCOUNT}% от суммы без скидок
+                        скидка {cashRate}% от суммы позиций
                       </div>
                     </div>
                     <span className="num text-[13px] font-bold whitespace-nowrap text-[#d81f27]">

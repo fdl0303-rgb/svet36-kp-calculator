@@ -1,7 +1,7 @@
 import ExcelJS from 'exceljs'
 import logoInline from '../assets/logo.png?inline'
 import type { Company, Proposal } from '../types'
-import { CASH_PAYMENT_DISCOUNT, cashPaymentTotal, discountAmount, itemSubtotal, itemsTotal } from './calc'
+import { cashPaymentTotal, discountAmount, itemSubtotal, itemsTotal, totalDiscountWithCash } from './calc'
 import { addDaysISO, daysWord, formatDate, formatDateShort, num } from './format'
 
 const BLACK = 'FF141416'
@@ -43,7 +43,8 @@ export async function exportExcel(proposal: Proposal, company: Company): Promise
   const sum = itemsTotal(items)
   const discount = discountAmount(sum, options.discount)
   const grand = Math.round((sum - discount) * 100) / 100
-  const cash = cashPaymentTotal(sum)
+  const cash = cashPaymentTotal(sum, options.discount)
+  const cashRate = totalDiscountWithCash(options.discount)
   const validUntil = addDaysISO(proposal.date, options.validDays)
 
   sheet.mergeCells('A1:H1')
@@ -272,14 +273,14 @@ export async function exportExcel(proposal: Proposal, company: Company): Promise
     richText: [
       { text: 'При оплате наличными или картой в магазине\n', font: { size: 11, bold: true } },
       {
-        text: `ещё −${CASH_PAYMENT_DISCOUNT}% от суммы без скидок`,
+        text: `скидка ${cashRate}% от суммы позиций`,
         font: { size: 9, color: { argb: CASH_LABEL } },
       },
     ],
   }
   cashRow.getCell(1).alignment = { horizontal: 'right', vertical: 'middle', wrapText: true }
   cashRow.getCell(8).value = {
-    formula: `ROUND(H${lastItemRow + 1}*(1-${CASH_PAYMENT_DISCOUNT}/100),2)`,
+    formula: `ROUND(H${lastItemRow + 1}*(1-${cashRate}/100),2)`,
     result: cash,
   }
   cashRow.getCell(8).numFmt = MONEY_FMT
