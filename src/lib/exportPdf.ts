@@ -1,5 +1,6 @@
 import pdfMake from 'pdfmake/build/pdfmake'
 import vfs from 'pdfmake/build/vfs_fonts'
+import logoInline from '../assets/logo.png?inline'
 import type { Company, Proposal } from '../types'
 import { discountAmount, itemSubtotal, itemsTotal } from './calc'
 import { RUB, addDaysISO, daysWord, formatDate, formatDateShort, num } from './format'
@@ -37,17 +38,10 @@ export async function exportPdf(proposal: Proposal, company: Company): Promise<v
         width: '*',
         stack: [
           {
-            text: company.name,
-            fontSize: 15,
-            bold: true,
-            color: BLACK,
-            margin: [0, 0, 0, 1],
-          },
-          {
-            text: company.tagline,
-            fontSize: 8.5,
-            color: GREY,
-            margin: [0, 0, 0, 6],
+            image: 'logo',
+            width: 132,
+            height: 38,
+            margin: [0, 0, 0, 8],
           },
           {
             text: [
@@ -92,6 +86,7 @@ export async function exportPdf(proposal: Proposal, company: Company): Promise<v
     pageSize: 'A4',
     pageMargins: [40, 38, 40, 44],
     defaultStyle: { font: 'Roboto', fontSize: 9, color: BLACK },
+    images: { logo: logoInline },
     info: {
       title: `Коммерческое предложение № ${proposal.number}`,
       author: company.name,

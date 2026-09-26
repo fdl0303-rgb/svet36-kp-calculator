@@ -55,7 +55,7 @@ export function KpPreview({ proposal, company }: Props) {
             <div className="px-12 pt-11 pb-8">
               <div className="flex items-start justify-between gap-8">
                 <div className="min-w-0">
-                  <img src={logoUrl} alt="Свет-36" className="h-11 w-auto" />
+                  <img src={logoUrl} alt="Свет-36" className="h-auto w-[176px]" />
                   <div className="mt-3 max-w-[300px] text-[9.5px] leading-[1.5] text-[#5b5b63]">
                     {company.address}
                     {company.extraAddress ? (

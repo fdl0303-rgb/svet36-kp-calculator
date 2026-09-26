@@ -68,7 +68,7 @@ export async function exportExcel(proposal: Proposal, company: Company): Promise
   const left = sheet.getCell('A5')
   left.value = {
     richText: [
-      { text: `${company.name} — ${company.tagline}\n`, font: { bold: true, size: 10 } },
+      { text: `${company.name}\n`, font: { bold: true, size: 10 } },
       { text: company.address, font: { size: 9, color: { argb: GREY } } },
       {
         text: company.extraAddress ? `\n${company.extraAddress}` : '',
@@ -191,7 +191,10 @@ export async function exportExcel(proposal: Proposal, company: Company): Promise
     }
 
     if (item.photo) {
-      const imageId = workbook.addImage({ base64: stripDataUrl(item.photo), extension: 'png' })
+      const imageId = workbook.addImage({
+        base64: stripDataUrl(item.photo),
+        extension: imageExtension(item.photo),
+      })
       sheet.addImage(imageId, {
         tl: { col: 1.14, row: firstItemRow + index - 0.92 },
         ext: { width: 80, height: 80 },
@@ -311,6 +314,12 @@ function thinBorder() {
 function stripDataUrl(dataUrl: string): string {
   const comma = dataUrl.indexOf(',')
   return comma < 0 ? dataUrl : dataUrl.slice(comma + 1)
+}
+
+function imageExtension(dataUrl: string): 'png' | 'jpeg' | 'gif' {
+  if (/^data:image\/jpe?g/i.test(dataUrl)) return 'jpeg'
+  if (/^data:image\/gif/i.test(dataUrl)) return 'gif'
+  return 'png'
 }
 
 function fileName(proposal: Proposal): string {
