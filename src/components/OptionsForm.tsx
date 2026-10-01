@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { ChevronDown, FileSignature, Percent, RotateCcw } from 'lucide-react'
 import type { Company, Options } from '../types'
 import { daysWord } from '../lib/format'
-import { Button, Card, Field } from './ui'
+import { Button, Card, Checkbox, Field } from './ui'
 import { twMerge } from './tw'
 
 interface Props {
@@ -64,6 +64,14 @@ export function OptionsForm({
           />
         </Field>
       </div>
+
+      <Checkbox
+        className="mt-4"
+        checked={options.cashPayment !== false}
+        onChange={(checked) => onChange({ cashPayment: checked })}
+        label="Условие «Оплата картой или наличными»"
+        hint="Выводится рядом с итоговой ценой в предпросмотре, PDF и Excel. Снимите галочку, чтобы убрать блок."
+      />
 
       {open ? (
         <div className="mt-5 space-y-5 border-t border-line pt-5">

@@ -267,36 +267,38 @@ export async function exportExcel(proposal: Proposal, company: Company): Promise
   grandRow.height = 32
   cursor += 1
 
-  const cashRow = sheet.getRow(cursor)
-  sheet.mergeCells(`A${cursor}:G${cursor}`)
-  cashRow.getCell(1).value = {
-    richText: [
-      { text: 'При оплате наличными или картой в магазине\n', font: { size: 11, bold: true } },
-      {
-        text: `скидка ${cashRate}% от суммы позиций`,
-        font: { size: 9, color: { argb: CASH_LABEL } },
-      },
-    ],
-  }
-  cashRow.getCell(1).alignment = { horizontal: 'right', vertical: 'middle', wrapText: true }
-  cashRow.getCell(8).value = {
-    formula: `ROUND(H${lastItemRow + 1}*(1-${cashRate}/100),2)`,
-    result: cash,
-  }
-  cashRow.getCell(8).numFmt = MONEY_FMT
-  cashRow.getCell(8).font = { size: 13, bold: true, color: { argb: RED } }
-  cashRow.getCell(8).alignment = { vertical: 'middle', horizontal: 'right' }
-  cashRow.eachCell((cell) => {
-    cell.border = {
-      top: { style: 'thin', color: { argb: CASH_BORDER } },
-      bottom: { style: 'medium', color: { argb: CASH_BORDER } },
-      left: { style: 'thin', color: { argb: CASH_BORDER } },
-      right: { style: 'thin', color: { argb: CASH_BORDER } },
+  if (options.cashPayment !== false) {
+    const cashRow = sheet.getRow(cursor)
+    sheet.mergeCells(`A${cursor}:G${cursor}`)
+    cashRow.getCell(1).value = {
+      richText: [
+        { text: 'При оплате наличными или картой в магазине\n', font: { size: 11, bold: true } },
+        {
+          text: `скидка ${cashRate}% от суммы позиций`,
+          font: { size: 9, color: { argb: CASH_LABEL } },
+        },
+      ],
     }
-    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: CASH_FILL } }
-  })
-  cashRow.height = 34
-  cursor += 2
+    cashRow.getCell(1).alignment = { horizontal: 'right', vertical: 'middle', wrapText: true }
+    cashRow.getCell(8).value = {
+      formula: `ROUND(H${lastItemRow + 1}*(1-${cashRate}/100),2)`,
+      result: cash,
+    }
+    cashRow.getCell(8).numFmt = MONEY_FMT
+    cashRow.getCell(8).font = { size: 13, bold: true, color: { argb: RED } }
+    cashRow.getCell(8).alignment = { vertical: 'middle', horizontal: 'right' }
+    cashRow.eachCell((cell) => {
+      cell.border = {
+        top: { style: 'thin', color: { argb: CASH_BORDER } },
+        bottom: { style: 'medium', color: { argb: CASH_BORDER } },
+        left: { style: 'thin', color: { argb: CASH_BORDER } },
+        right: { style: 'thin', color: { argb: CASH_BORDER } },
+      }
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: CASH_FILL } }
+    })
+    cashRow.height = 34
+    cursor += 2
+  }
 
   const notes: string[] = [
     'Цена указана за покупку всех товаров, перечисленных в настоящем предложении.',

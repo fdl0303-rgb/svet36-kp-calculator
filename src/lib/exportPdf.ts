@@ -267,41 +267,48 @@ export async function exportPdf(proposal: Proposal, company: Company): Promise<v
                 ],
                 margin: [0, 6, 0, 0],
               },
-              {
-                table: {
-                  widths: ['*', 96],
-                  body: [
-                    [
-                      {
-                        text: [
-                          { text: 'При оплате наличными или картой в магазине\n', bold: true },
-                          { text: `скидка ${cashRate}% от суммы позиций`, color: '#8a5a5a' },
+              ...(options.cashPayment !== false
+                ? [
+                    {
+                      table: {
+                        widths: ['*', 96],
+                        body: [
+                          [
+                            {
+                              text: [
+                                {
+                                  text: 'При оплате наличными или картой в магазине\n',
+                                  bold: true,
+                                },
+                                { text: `скидка ${cashRate}% от суммы позиций`, color: '#8a5a5a' },
+                              ],
+                              fontSize: 8,
+                              fillColor: '#fdf4f4',
+                              margin: [6, 5, 0, 5],
+                              lineHeight: 1.25,
+                            },
+                            {
+                              text: money(cash),
+                              bold: true,
+                              fontSize: 12,
+                              color: RED,
+                              alignment: 'right',
+                              fillColor: '#fdf4f4',
+                              margin: [0, 5, 6, 5],
+                            },
+                          ],
                         ],
-                        fontSize: 8,
-                        fillColor: '#fdf4f4',
-                        margin: [6, 5, 0, 5],
-                        lineHeight: 1.25,
                       },
-                      {
-                        text: money(cash),
-                        bold: true,
-                        fontSize: 12,
-                        color: RED,
-                        alignment: 'right',
-                        fillColor: '#fdf4f4',
-                        margin: [0, 5, 6, 5],
+                      layout: {
+                        hLineWidth: () => 0.5,
+                        vLineWidth: () => 0.5,
+                        hLineColor: () => '#f0c9c9',
+                        vLineColor: () => '#f0c9c9',
                       },
-                    ],
-                  ],
-                },
-                layout: {
-                  hLineWidth: () => 0.5,
-                  vLineWidth: () => 0.5,
-                  hLineColor: () => '#f0c9c9',
-                  vLineColor: () => '#f0c9c9',
-                },
-                margin: [0, 6, 0, 0],
-              },
+                      margin: [0, 6, 0, 0],
+                    },
+                  ]
+                : []),
             ],
           },
         ],

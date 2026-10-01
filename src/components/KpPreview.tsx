@@ -216,19 +216,21 @@ export function KpPreview({ proposal, company }: Props) {
                       {moneyExact(grand)}
                     </span>
                   </div>
-                  <div className="mt-1.5 flex items-start justify-between gap-3 rounded-lg border border-[#f0c9c9] bg-[#fdf4f4] px-2.5 py-1.5">
-                    <div className="min-w-0">
-                      <div className="text-[9px] leading-tight font-semibold text-[#141416]">
-                        При оплате наличными или картой в магазине
+                  {options.cashPayment !== false ? (
+                    <div className="mt-1.5 flex items-start justify-between gap-3 rounded-lg border border-[#f0c9c9] bg-[#fdf4f4] px-2.5 py-1.5">
+                      <div className="min-w-0">
+                        <div className="text-[9px] leading-tight font-semibold text-[#141416]">
+                          При оплате наличными или картой в магазине
+                        </div>
+                        <div className="text-[8px] leading-tight text-[#8a5a5a]">
+                          скидка {cashRate}% от суммы позиций
+                        </div>
                       </div>
-                      <div className="text-[8px] leading-tight text-[#8a5a5a]">
-                        скидка {cashRate}% от суммы позиций
-                      </div>
+                      <span className="num text-[13px] font-bold whitespace-nowrap text-[#d81f27]">
+                        {moneyExact(cash)}
+                      </span>
                     </div>
-                    <span className="num text-[13px] font-bold whitespace-nowrap text-[#d81f27]">
-                      {moneyExact(cash)}
-                    </span>
-                  </div>
+                  ) : null}
                 </div>
               </div>
 

@@ -44,6 +44,8 @@ export interface Options {
   comment: string
   manager: string
   discount: number
+  /** Показывать блок «При оплате наличными или картой в магазине» рядом с итоговой ценой. */
+  cashPayment: boolean
 }
 
 export interface Proposal {

@@ -8,7 +8,7 @@ interface SharePayload {
   n: string
   d: string
   c: [string, string, string, string, string, string]
-  o: [number, string, string, string, string, number]
+  o: [number, string, string, string, string, number, 0 | 1]
   i: ShareItem[]
 }
 
@@ -46,6 +46,7 @@ export function encodeProposal(p: Proposal): string {
       p.options.comment,
       p.options.manager,
       p.options.discount,
+      p.options.cashPayment === false ? 0 : 1,
     ],
     i: p.items.map<ShareItem>((item) => [
       item.name,
@@ -82,6 +83,8 @@ export function decodeProposal(data: string): Proposal | null {
         comment: parsed.o?.[3] ?? '',
         manager: parsed.o?.[4] ?? '',
         discount: parsed.o?.[5] ?? 0,
+        // В ссылках, созданных до появления галочки, флага нет — считаем условие включённым.
+        cashPayment: parsed.o?.[6] !== 0,
       },
       items: parsed.i.map<Partial<Item>>((row) => ({
         id: cryptoId(),

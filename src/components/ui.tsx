@@ -33,6 +33,62 @@ export function Card({
   )
 }
 
+export function Checkbox({
+  checked,
+  onChange,
+  label,
+  hint,
+  className,
+}: {
+  checked: boolean
+  onChange: (checked: boolean) => void
+  label: ReactNode
+  hint?: string
+  className?: string
+}) {
+  return (
+    <label
+      className={twMerge(
+        'flex cursor-pointer select-none items-start gap-2.5 rounded-xl border border-line bg-elevated px-3 py-2.5 transition-colors hover:border-line-strong',
+        checked && 'border-accent/40 bg-accent-soft',
+        className,
+      )}
+    >
+      <input
+        type="checkbox"
+        className="sr-only"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+      />
+      <span
+        aria-hidden="true"
+        className={twMerge(
+          'mt-px grid size-[18px] shrink-0 place-items-center rounded-md border transition-colors',
+          checked ? 'border-accent bg-accent text-white' : 'border-line-strong bg-surface',
+        )}
+      >
+        {checked ? (
+          <svg
+            viewBox="0 0 16 16"
+            className="size-3"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2.5}
+          >
+            <path d="M3.5 8.5l3 3 6-6.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        ) : null}
+      </span>
+      <span className="min-w-0">
+        <span className="block text-[13px] leading-tight font-medium">{label}</span>
+        {hint ? (
+          <span className="mt-0.5 block text-[11.5px] leading-snug text-muted">{hint}</span>
+        ) : null}
+      </span>
+    </label>
+  )
+}
+
 export function Field({
   label,
   hint,

@@ -23,6 +23,7 @@ const DEFAULT_OPTIONS: Options = {
   comment: '',
   manager: '',
   discount: 0,
+  cashPayment: true,
 }
 
 function createDraft(): Proposal {
