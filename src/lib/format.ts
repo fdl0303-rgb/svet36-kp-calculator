@@ -85,3 +85,16 @@ export function formatDateShort(iso: string): string {
 export function daysWord(count: number): string {
   return plural(count, ['день', 'дня', 'дней'])
 }
+
+/** «сегодня, 14:30» / «вчера, 09:05» / «12 окт, 18:40» — время сохранения в истории. */
+export function formatStamp(ts: number): string {
+  const d = new Date(ts)
+  if (Number.isNaN(d.getTime())) return ''
+  const time = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+  const day = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+  const today = parseISODate(todayISO()).getTime()
+  const diffDays = Math.round((today - day) / 86400000)
+  if (diffDays === 0) return `сегодня, ${time}`
+  if (diffDays === 1) return `вчера, ${time}`
+  return `${d.getDate()} ${MONTHS[d.getMonth()].slice(0, 3)}, ${time}`
+}

@@ -1,17 +1,30 @@
 import { useState } from 'react'
-import { FileSpreadsheet, FileText, Loader2, Send, TriangleAlert } from 'lucide-react'
+import {
+  Check,
+  FileSpreadsheet,
+  FileText,
+  Loader2,
+  Pencil,
+  Save,
+  Send,
+  TriangleAlert,
+} from 'lucide-react'
 import type { Company, Proposal } from '../types'
-import { itemsWord, money, num } from '../lib/format'
+import { formatStamp, itemsWord, money, num } from '../lib/format'
+import type { HistoryEntry } from '../lib/history'
 import { Button, Stat } from './ui'
 
 interface Props {
   proposal: Proposal
   company: Company
   totals: { count: number; qty: number; sum: number; discount: number; grand: number }
+  current: HistoryEntry | null
+  dirty: boolean
+  onSave: () => void
   onShare: () => void
 }
 
-export function ActionBar({ proposal, company, totals, onShare }: Props) {
+export function ActionBar({ proposal, company, totals, current, dirty, onSave, onShare }: Props) {
   const [busy, setBusy] = useState<'pdf' | 'xlsx' | null>(null)
   const [error, setError] = useState<string | null>(null)
   const hasItems = proposal.items.some((item) => item.name.trim() !== '')
@@ -41,6 +54,48 @@ export function ActionBar({ proposal, company, totals, onShare }: Props) {
         <Stat label="Всего штук" value={num(totals.qty)} hint="суммарно" />
         <Stat label="Сумма" value={money(totals.sum)} hint="без скидки" />
         <Stat label="К оплате" value={money(totals.grand)} hint={totals.discount ? 'со скидкой' : 'итого'} />
+      </div>
+
+      <div className="border-t border-line p-4">
+        <Button
+          variant="primary"
+          size="lg"
+          className="w-full"
+          onClick={onSave}
+          disabled={!hasItems}
+          title={hasItems ? 'Сохранить предложение в историю' : 'Заполните хотя бы одно наименование'}
+        >
+          {dirty ? <Pencil size={17} /> : <Save size={17} />}
+          <span className="truncate">{current ? 'Обновить в истории' : 'Сохранить в истории'}</span>
+        </Button>
+        <p className="mt-2 flex items-start gap-1.5 text-[11.5px] leading-snug text-muted">
+          {dirty ? (
+            <Pencil size={12} className="mt-0.5 shrink-0 text-accent" />
+          ) : current ? (
+            <Check size={12} className="mt-0.5 shrink-0 text-pos" />
+          ) : (
+            <Save size={12} className="mt-0.5 shrink-0" />
+          )}
+          <span className="min-w-0">
+            {dirty ? (
+              current ? (
+                <>
+                  Есть несохранённые правки. Открыто «{current.name}», сохранено{' '}
+                  {formatStamp(current.savedAt)}.
+                </>
+              ) : (
+                'Есть несохранённые правки — предложение ещё не в истории.'
+              )
+            ) : current ? (
+              <>
+                В истории: «{current.name}» · сумма {money(totals.grand)} ·{' '}
+                {formatStamp(current.updatedAt)}
+              </>
+            ) : (
+              'Сохраните предложение под своим названием — сумма и дата проставятся автоматически.'
+            )}
+          </span>
+        </p>
       </div>
 
       <div className="grid grid-cols-2 gap-2 border-t border-line p-4">

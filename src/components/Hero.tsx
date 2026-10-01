@@ -87,7 +87,7 @@ export function Hero({ proposal, onNumber, onDate, onNew }: Props) {
               <FilePlus2 size={14} /> Новое предложение
             </Button>
             <span className="text-[11.5px] text-muted">
-              Черновик сохраняется в браузере автоматически
+              Черновик сохраняется автоматически, «Сохранить» — в историю
             </span>
           </div>
         </div>

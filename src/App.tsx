@@ -8,14 +8,19 @@ import { ItemsEditor } from './components/ItemsEditor'
 import { OptionsForm } from './components/OptionsForm'
 import { KpPreview } from './components/KpPreview'
 import { ActionBar } from './components/ActionBar'
+import { HistoryPanel } from './components/HistoryPanel'
+import { SaveDialog } from './components/SaveDialog'
 import { ShareDialog } from './components/ShareDialog'
 import { Button } from './components/ui'
+import { defaultHistoryName } from './lib/history'
 import { useProposal } from './state/useProposal'
 
 export default function App() {
   const state = useProposal()
   const { proposal, company, totals, fromLink } = state
   const [shareOpen, setShareOpen] = useState(false)
+  const [saveOpen, setSaveOpen] = useState(false)
+  const current = state.history.find((entry) => entry.id === state.currentId) ?? null
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -71,6 +76,16 @@ export default function App() {
               Все расчёты выполняются в браузере: данные не отправляются на сторонние серверы.
               Фотографии сжимаются и встраиваются в PDF и Excel.
             </p>
+
+            <HistoryPanel
+              entries={state.history}
+              loading={state.historyLoading}
+              error={state.historyError}
+              currentId={state.currentId}
+              dirty={state.dirty}
+              onOpen={state.openFromHistory}
+              onDelete={state.deleteFromHistory}
+            />
           </div>
 
           <div className="min-w-0 space-y-5 lg:sticky lg:top-[170px]">
@@ -78,6 +93,9 @@ export default function App() {
               proposal={proposal}
               company={company}
               totals={totals}
+              current={current}
+              dirty={state.dirty}
+              onSave={() => setSaveOpen(true)}
               onShare={() => setShareOpen(true)}
             />
             <KpPreview proposal={proposal} company={company} />
@@ -86,6 +104,17 @@ export default function App() {
       </main>
 
       <SiteFooter company={company} />
+
+      {saveOpen ? (
+        <SaveDialog
+          proposal={proposal}
+          totals={totals}
+          current={current}
+          initialName={current?.name ?? defaultHistoryName(proposal)}
+          onSave={state.saveToHistory}
+          onClose={() => setSaveOpen(false)}
+        />
+      ) : null}
 
       <ShareDialog
         key={shareOpen ? 'share-open' : 'share-closed'}

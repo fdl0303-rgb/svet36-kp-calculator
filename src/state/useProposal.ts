@@ -1,8 +1,17 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Client, Company, Item, Options, Proposal } from '../types'
 import { createItem, cryptoId, discountAmount, grandTotal, itemsTotal, sumQty } from '../lib/calc'
 import { DEFAULT_COMPANY } from '../lib/company'
 import { todayISO } from '../lib/format'
+import {
+  buildHistoryEntry,
+  deleteHistoryEntry,
+  listHistory,
+  proposalFingerprint,
+  readDocument,
+  writeHistoryEntry,
+} from '../lib/history'
+import type { HistoryEntry } from '../lib/history'
 import { buildProposalNumber } from '../lib/number'
 import { readHashProposal } from '../lib/share'
 import { COMPANY_KEY, DRAFT_KEY, loadJSON, saveJSON } from '../lib/storage'
@@ -53,6 +62,11 @@ export interface ProposalState {
   company: Company
   fromLink: boolean
   totals: { count: number; qty: number; sum: number; discount: number; grand: number }
+  history: HistoryEntry[]
+  historyLoading: boolean
+  historyError: string | null
+  currentId: string | null
+  dirty: boolean
   setClient: (patch: Partial<Client>) => void
   setOptions: (patch: Partial<Options>) => void
   setCompany: (patch: Partial<Company>) => void
@@ -67,6 +81,9 @@ export interface ProposalState {
   newProposal: () => void
   loadFromLink: (p: Proposal) => void
   resetCompany: () => void
+  saveToHistory: (name: string) => Promise<void>
+  openFromHistory: (id: string) => Promise<void>
+  deleteFromHistory: (id: string) => Promise<void>
 }
 
 export function useProposal(): ProposalState {
@@ -90,6 +107,55 @@ export function useProposal(): ProposalState {
   )
   const [fromLink, setFromLink] = useState<boolean>(() => Boolean(readHashProposal()))
   const firstRun = useRef(true)
+  const historyAttached = useRef(false)
+  const [history, setHistory] = useState<HistoryEntry[]>([])
+  const [historyLoading, setHistoryLoading] = useState(true)
+  const [historyError, setHistoryError] = useState<string | null>(null)
+  const [currentId, setCurrentId] = useState<string | null>(null)
+  const [savedFingerprint, setSavedFingerprint] = useState<string>(() => proposalFingerprint(proposal))
+
+  const dirty = savedFingerprint !== proposalFingerprint(proposal)
+
+  const refreshHistory = useCallback(async () => {
+    try {
+      setHistory(await listHistory())
+      setHistoryError(null)
+    } catch (e) {
+      setHistoryError(e instanceof Error ? e.message : 'Не удалось прочитать историю')
+    } finally {
+      setHistoryLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (historyAttached.current) return
+    historyAttached.current = true
+    let cancelled = false
+    const currentFingerprint = proposalFingerprint(proposal)
+    listHistory()
+      .then((rows) => {
+        if (cancelled) return
+        setHistory(rows)
+        setHistoryError(null)
+        // Открытый документ совпадает с сохранённым — продолжаем его, а не создаём копию.
+        const match = rows.find((entry) => entry.fingerprint === currentFingerprint)
+        if (match) {
+          setCurrentId(match.id)
+          setSavedFingerprint(match.fingerprint)
+        }
+      })
+      .catch((e: unknown) => {
+        if (!cancelled) setHistoryError(e instanceof Error ? e.message : 'Не удалось прочитать историю')
+      })
+      .finally(() => {
+        if (!cancelled) setHistoryLoading(false)
+      })
+    return () => {
+      cancelled = true
+      // StrictMode вызывает эффект дважды: сбрасываем флаг, чтобы загрузка повторилась.
+      historyAttached.current = false
+    }
+  }, [proposal])
 
   useEffect(() => {
     if (firstRun.current) {
@@ -189,19 +255,67 @@ export function useProposal(): ProposalState {
   const newProposal = useCallback(() => {
     window.history.replaceState(null, '', window.location.pathname + window.location.search)
     setFromLink(false)
-    setProposal(createDraft())
+    setCurrentId(null)
+    const next = createDraft()
+    setProposal(next)
+    setSavedFingerprint(proposalFingerprint(next))
   }, [])
 
   const loadFromLink = useCallback((p: Proposal) => {
     setFromLink(true)
-    setProposal(withItems(p))
+    setCurrentId(null)
+    const next = withItems(p)
+    setProposal(next)
+    setSavedFingerprint(proposalFingerprint(next))
   }, [])
+
+  const saveToHistory = useCallback(
+    async (name: string) => {
+      const id = currentId ?? cryptoId()
+      const previous = currentId ? history.find((entry) => entry.id === currentId) : undefined
+      const entry = buildHistoryEntry(proposal, id, name, previous?.savedAt ?? Date.now())
+      await writeHistoryEntry(entry, proposal)
+      setSavedFingerprint(proposalFingerprint(proposal))
+      setCurrentId(id)
+      setFromLink(false)
+      await refreshHistory()
+    },
+    [currentId, history, proposal, refreshHistory],
+  )
+
+  const openFromHistory = useCallback(async (id: string) => {
+    const stored = await readDocument(id)
+    if (!stored) {
+      setHistoryError('Предложение не найдено в истории — возможно, база очищена')
+      await refreshHistory()
+      return
+    }
+    const next = withItems(stored)
+    setFromLink(false)
+    setCurrentId(id)
+    setProposal(next)
+    setSavedFingerprint(proposalFingerprint(next))
+  }, [refreshHistory])
+
+  const deleteFromHistory = useCallback(
+    async (id: string) => {
+      await deleteHistoryEntry(id)
+      if (currentId === id) setCurrentId(null)
+      await refreshHistory()
+    },
+    [currentId, refreshHistory],
+  )
 
   return {
     proposal,
     company,
     fromLink,
     totals,
+    history,
+    historyLoading,
+    historyError,
+    currentId,
+    dirty,
     setClient,
     setOptions,
     setCompany,
@@ -216,5 +330,8 @@ export function useProposal(): ProposalState {
     newProposal,
     loadFromLink,
     resetCompany,
+    saveToHistory,
+    openFromHistory,
+    deleteFromHistory,
   }
 }
